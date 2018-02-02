@@ -1,15 +1,36 @@
 const {SHA256} = require('crypto-js');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+
 var secretSalt = 'salty mc salterson';
 
-var data = {
-	id : 10
-};
-var token = jwt.sign(data, secretSalt);
-console.log('token:' , token);
+var password = '123abc!';
 
-var decoded = jwt.verify(token, secretSalt);
-console.log('decoded: ' + JSON.stringify(decoded, undefined, 2));
+bcrypt.genSalt(10, (err, salt) => {
+	bcrypt.hash(password, salt, (err, hash) => {
+		console.log(hash);
+	})
+});
+
+var hashedPassword = '$2a$10$/blp6B5J9H3CoXBfZ.Wu1e0Nlrse0/Pxej1U.GPjooR8c69ZxKH96';
+
+bcrypt.compare(password, hashedPassword, (err, res) => {
+	if(res){
+		console.log(res);
+	}
+})
+
+// var data = {
+// 	id : 10
+// };
+// var token = jwt.sign(data, secretSalt);
+// console.log('token:' , token);
+
+// var decoded = jwt.verify(token, secretSalt);
+// console.log('decoded: ' + JSON.stringify(decoded, undefined, 2));
+
+
 // var message = 'I am uggletron!';
 // var hash = SHA256(message).toString();
 
