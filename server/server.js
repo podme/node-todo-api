@@ -81,10 +81,10 @@ app.patch('/todos/:id', (req, res) => {
 	}
 
 	if(_.isBoolean(body.completed) && body.completed){
-		console.log('was true');
+		// console.log('was true');
 		body.completedAt = new Date().getTime();
 	}else{
-		console.log('was false or not a boolean');
+		// console.log('was false or not a boolean');
 		body.completed = false;
 		body.completedAt = null;
 	}
