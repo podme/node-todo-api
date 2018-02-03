@@ -43,7 +43,7 @@ UserSchema.methods.toJSON = function () {
 	var user = this;
 	var userObject = user.toObject();
 	return _.pick(userObject, ['_id', 'email']);
-}
+};
 UserSchema.methods.generateAuthToken = function () {
 	var user = this;
 	var access = 'auth';
@@ -52,7 +52,7 @@ UserSchema.methods.generateAuthToken = function () {
 	return user.save().then(() => {
 		return token
 	});
-}
+};
 
 UserSchema.statics.findByToken = function (token) {
 	var User = this;
@@ -67,7 +67,26 @@ UserSchema.statics.findByToken = function (token) {
 		'tokens.token' : token,//access nested props by using quotes
 		'tokens.access' : 'auth'
 	})
-}
+};
+
+UserSchema.statics.findByCredentials = function (email, password) {
+	var User = this;
+	return User.findOne({email}).then((user) => {
+		if(!user){
+			return Promise.reject();
+		}
+		return new Promise((resolve, reject) => {
+			bcrypt.compare(password, user.password, (err, res) => {
+				if(res){
+					// console.log(res);
+					resolve(user);
+				}else{
+					reject();
+				}
+			})
+		})
+	});
+};
 
 // before we save, we want to run some code
 UserSchema.pre('save', function(next){
