@@ -1,3 +1,9 @@
+// expect methods changes in new version
+// new expect API docs: https://facebook.github.io/jest/docs/en/expect.html
+// .toNotExist -> toBeFalsy
+// .toExist -> toBeTruthy
+// .toContain -> toObject with toMatchObject
+
 const expect = require('expect');
 const request = require('supertest');
 const {app} = require('./../server');
@@ -224,7 +230,7 @@ describe('PATCH /todos/:id', () => {
 			.expect((res) => {
 				expect(res.body.todo.text).toBe(text);
 				expect(res.body.todo.completed).toBe(false);
-				expect(res.body.todo.completedAt).toBeNull();
+				expect(res.body.todo.completedAt).toBeFalsy();
 			})
 			.end(done);
 	});
@@ -318,21 +324,22 @@ describe('POST /users/login', () => {
 					return done(err);
 				}
 				User.findById(users[1]._id).then((user) => {
-					expect(user.tokens[1])
+					
 
-					// .toInclude
+					expect(user.toObject().tokens[1])
+					.toMatchObject({
+						access : 'auth',
+						token: res.headers['x-auth']
+					});
 
-					// .toMatchObject({
-					// 	access : 'auth',
-					// 	token: res.headers['x-auth']
-					// });
-
-					.toEqual(
-			            expect.objectContaining({
-				            access: 'auth',
-				            token: res.headers['x-auth']
-			          })
-			        );
+					// another way to do it
+					// expect(user.tokens[1])
+					// .toEqual(
+					// 	expect.objectContaining({
+					// 		access: 'auth',
+					// 		token: res.headers['x-auth']
+					// 	})
+					// );
 
 					done();
 				}).catch((e)=>done(e));
@@ -347,7 +354,7 @@ describe('POST /users/login', () => {
 			})
 			.expect(400)
 			.expect((res) => {
-				expect(res.headers['x-auth']).not.toBeTruthy();
+				expect(res.headers['x-auth']).toBeFalsy();
 			})
 			.end((err, res) => {
 				if(err){
