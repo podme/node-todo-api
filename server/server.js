@@ -14,21 +14,23 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json());//use use to use middleware
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
 	// console.log(req.body);
 	var todo = new Todo({
-		text : req.body.text
+		text : req.body.text,
+		_creator: req.user._id//authenticate middleware gives us access to user
 	});
 	todo.save().then((doc) => {
 		res.send(doc);
 	}, (e) => {
-
 		res.status(400).send(e);
 	});
 });
 
-app.get('/todos', (req, res) => {
-	Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+	Todo.find({
+		_creator : req.user._id//only give access to those todos created by this user
+	}).then((todos) => {
 		// we'll send back the array as an object key val pair, to keep communications flexible
 		res.send({todos})
 	}, (e) => {
@@ -36,14 +38,17 @@ app.get('/todos', (req, res) => {
 	});
 });
 
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
 	// res.send(req.params);
 	var id = req.params.id;
 
 	if(!ObjectID.isValid(id)){
 		return res.status(404).send();
 	}
-	Todo.findById(id).then((todo) => {
+	Todo.findOne({//was findById, but now we also check _creators
+		_id: id,
+		_creator: req.user._id
+	}).then((todo) => {
 		if(todo){
 			return res.send({todo});
 		}
@@ -53,14 +58,17 @@ app.get('/todos/:id', (req, res) => {
 	});
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
 	var id = req.params.id;
 
 	if(!ObjectID.isValid(id)){
 		return res.status(404).send();
 	}
-
-	Todo.findByIdAndRemove(id).then((todo) => {
+	//was findByIdAndRemove, but now we find by _creator also
+	Todo.findOneAndRemove({
+		_id : id,
+		_creator: req.user._id
+	}).then((todo) => {
 		if(!todo){
 			return res.status(404).send();
 		}
@@ -71,7 +79,7 @@ app.delete('/todos/:id', (req, res) => {
 });
 
 // update
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
 	var id = req.params.id;
 	var body = _.pick(req.body, ['text', 'completed']);//just pick off what we want to give user access to, not 'completed at' or 'id'.
 
@@ -89,7 +97,10 @@ app.patch('/todos/:id', (req, res) => {
 		body.completedAt = null;
 	}
 
-	Todo.findByIdAndUpdate(id, {$set : body}, {new : true}).then((todo) => {
+	Todo.findOneAndUpdate({
+		_id: id,
+		_creator: req.user._id
+	}, {$set : body}, {new : true}).then((todo) => {
 		if(!todo){
 			return res.status(404).send();
 		}
