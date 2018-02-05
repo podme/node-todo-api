@@ -1,8 +1,8 @@
 // expect methods changes in new version
 // new expect API docs: https://facebook.github.io/jest/docs/en/expect.html
-// .toNotExist -> toBeFalsy
-// .toExist -> toBeTruthy
-// .toContain -> toObject with toMatchObject
+// .toNotExist -> .toBeFalsy
+// .toExist -> .toBeTruthy
+// .toContain -> .toObject with .toMatchObject
 
 const expect = require('expect');
 const request = require('supertest');
@@ -19,7 +19,6 @@ beforeEach(populateTodos);
 describe('POST /todos', () => {
 	it('should create a new todo', (done) => {
 		var text = 'Test text';
-
 		request(app)
 			.post('/todos')
 			.set('x-auth', users[0].tokens[0].token)
